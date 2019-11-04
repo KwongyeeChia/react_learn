@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- <button class="like-button">
+      <span class="like-text">赞</span>
+      🍉
+    </button> -->
+  </div>
+</body>
+  <script>
+    // ----------------------公共方法--------------------------
+    // 创建一个函数，接收字符串返回DOM，只有DOM结构才能有事件
+    const createDOMFromString = (domString)=>{
+      let div = document.createElement('div')
+      div.innerHTML = domString
+      return div
+    }
+    // 获取根元素容器，用于挂载
+    let wrapper = document.querySelector('.wrapper')
+    // -------------------------------------------------------
+    // 第一阶段 实现基础结构，添加事件
+    // let button = document.querySelector('.like-button')
+    // let buttonText = document.querySelector('.like-text')
+    // let isLiked = false
+    // button.addEventListener('click',function(){
+    //   isLiked = !isLiked
+    //   buttonText.innerHTML = isLiked ? '点赞':'取消'
+    // }, false)
+    // ------------------------------------------------------
+    // 第二阶段 复用结构，添加对应事件
+    // class LikeButton {
+    //   constructor() {
+    //     this.state = {
+    //       isLiked: false
+    //     }
+    //   }
+    //   changeLikeText() {
+    //     const likeText = this.el.querySelector('.like-text')
+    //     this.state.isLiked = !this.state.isLiked
+    //     likeText.innerHTML = this.state.isLiked ? '取消':'点赞'
+    //   }
+    //   render() {
+    //     this.el = createDOMFromString(`
+    //       <button class="like-button">
+    //         <span class="like-text">赞</span>
+    //         <span>👍</span>
+    //       </button>
+    //     `)
+    //     this.el.addEventListener('click', this.changeLikeText.bind(this) , false)
+    //     return this.el
+    //   }
+    // }
+    // let button1 = new LikeButton()
+    // wrapper.appendChild(button1.render())
+    // let button2 = new LikeButton()
+    // wrapper.appendChild(button2.render())
+    // -----------------------------------------------------------
+    // 第三阶段 减少手动维护DOM操作,通过状态去驱动DOM的更新
+    // class LikeButton {
+    //   constructor() {
+    //     this.state = {
+    //       isLiked: false
+    //     }
+    //   }
+    //   setState(state) {
+    //     const oldEl = this.el
+    //     this.state = state
+    //     this.el = this.render()
+    //     if (this.onStateChange) this.onStateChange(oldEl, this.el) 
+    //   }
+    //   changeLikeText() {
+    //     this.setState({
+    //       isLiked: !this.state.isLiked
+    //     })
+    //   }
+    //   render() {
+    //     this.el = createDOMFromString(`
+    //       <button class="like-button">
+    //         <span class="like-text">${this.state.isLiked ? '取消':'点赞'}</span>
+    //         <span>👍</span>
+    //       </button>
+    //     `)
+    //     this.el.addEventListener('click', this.changeLikeText.bind(this) , false)
+    //     return this.el
+    //   }
+    // }
+    // let likeButton = new LikeButton()
+    // wrapper.append(likeButton.render())
+    // likeButton.onStateChange = (oldEl, newEl) => {
+    //   wrapper.insertBefore(newEl, oldEl)
+    //   wrapper.removeChild(oldEl)
+    // }
+    // --------------------------------------------------------------
+    // 第四阶段 创建一个Component公共类 用于创建更多的组件
+    class Component {
+      constructor(props = {}) {
+        this.props = props
+      }
+      setState(state) {
+        const oldEl = this.el
+        this.state = state
+        this.el = this._renderDOM()
+        if ( this.onStateChange ) this.onStateChange(oldEl,this.el)
+      }
+      _renderDOM() {
+        this.el = createDOMFromString(this.render())
+        if (this.onClick) {
+          this.el.addEventListener('click', this.onClick.bind(this), false)
+        }
+        return this.el
+      }
+    }
+    // 继承Component类 创建LikeButton组件
+    class LikeButton extends Component {
+      constructor(props) {
+        super(props)
+        this.state = { isLiked: false }
+      }
+      onClick() {
+        this.setState({
+          isLiked: !this.state.isLiked
+        })
+      }
+      render() {
+        return `
+          <button class="like-button" style="background-color: ${this.props.bgColor}">
+            <span class="like-text">${this.state.isLiked ? '取消':'点赞'}</span>
+            <span>👍</span>
+          </button>
+        `
+      }
+    }
+    // 挂载函数
+    const mount = (component, wrapper) => {
+      console.log('component', component, 'wrapper', wrapper)
+      wrapper.appendChild(component._renderDOM())
+      component.onStateChange = (oldEl, newEl) => {
+        wrapper.insertBefore(newEl, oldEl)
+        wrapper.removeChild(oldEl)
+      }
+    }
+    // 实例化
+    mount(new LikeButton({bgColor: 'red'}), wrapper)
+  </script>
+</html>
